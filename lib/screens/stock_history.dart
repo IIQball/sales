@@ -13,10 +13,10 @@ class StockPage extends StatefulWidget {
   const StockPage({Key? key}) : super(key: key);
 
   @override
-  _StockPageState createState() => _StockPageState();
+  StockPageState createState() => StockPageState();
 }
 
-class _StockPageState extends State<StockPage> {
+class StockPageState extends State<StockPage> {
   List<Map<String, dynamic>> stockHistory = [];
   final TextEditingController searchController = TextEditingController();
   String? filterQuery;
@@ -62,13 +62,13 @@ class _StockPageState extends State<StockPage> {
           _isLoading = false;
         });
       } else {
-        print('Failed to load stock');
+        debugPrint('Failed to load stock');
         setState(() {
           _isLoading = false;
         });
       }
     } else {
-      print('No token found');
+      debugPrint('No token found');
       setState(() {
         _isLoading = false;
       });
@@ -80,7 +80,8 @@ class _StockPageState extends State<StockPage> {
     final String? token = prefs.getString('token');
 
     if (token != null) {
-      final url = 'https://backend-sales-pearl.vercel.app/api/owner/restock/$kodeRestock';
+      final url =
+          'https://backend-sales-pearl.vercel.app/api/owner/restock/$kodeRestock';
       final response = await http.delete(
         Uri.parse(url),
         headers: {
@@ -88,14 +89,17 @@ class _StockPageState extends State<StockPage> {
         },
       );
 
+      if (!mounted) return;
+
       if (response.statusCode == 200) {
         setState(() {
-          stockHistory.removeWhere((stock) => stock['kode_restock'] == kodeRestock);
+          stockHistory
+              .removeWhere((stock) => stock['kode_restock'] == kodeRestock);
         });
-        Navigator.of(context).pop(); 
-        showSuccessPopup(context, 'Data berhasil dihapus'); 
+        Navigator.of(context).pop();
+        showSuccessPopup(context, 'Data berhasil dihapus');
       } else {
-        print('Failed to delete stock');
+        debugPrint('Failed to delete stock');
       }
     }
   }
@@ -117,16 +121,18 @@ class _StockPageState extends State<StockPage> {
   Widget build(BuildContext context) {
     final filteredStockHistory = filterQuery == null
         ? stockHistory
-        : stockHistory.where((stock) =>
-            stock['kode_restock'].toLowerCase().contains(filterQuery!.toLowerCase())
-        ).toList();
+        : stockHistory
+            .where((stock) => stock['kode_restock']
+                .toLowerCase()
+                .contains(filterQuery!.toLowerCase()))
+            .toList();
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Manajemen Stok'),
         actions: [
           IconButton(
-            icon: Icon(Icons.info),
+            icon: const Icon(Icons.info),
             onPressed: () async {
               final prefs = await SharedPreferences.getInstance();
               final token = prefs.getString('token');
@@ -152,12 +158,14 @@ class _StockPageState extends State<StockPage> {
                         filled: true,
                         fillColor: Colors.white,
                         labelText: 'Cari Produk',
-                        prefixIcon: Icon(Icons.search, color: Colors.blueAccent),
+                        prefixIcon:
+                            const Icon(Icons.search, color: Colors.blueAccent),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
                         ),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 12),
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -204,7 +212,8 @@ class _StockPageState extends State<StockPage> {
                             ),
                           ],
                           rows: filteredStockHistory.map((stock) {
-                            final listProduk = stock['list_produk'] as List<dynamic>;
+                            final listProduk =
+                                stock['list_produk'] as List<dynamic>;
                             return DataRow(
                               cells: [
                                 DataCell(Text(stock['kode_restock'] ?? '')),
@@ -214,7 +223,8 @@ class _StockPageState extends State<StockPage> {
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) => ProductDetailsPage(
+                                          builder: (context) =>
+                                              ProductDetailsPage(
                                             kodeRestok: stock['kode_restock'],
                                             productDetails: listProduk,
                                           ),
@@ -223,16 +233,20 @@ class _StockPageState extends State<StockPage> {
                                     },
                                     child: Text(
                                       '${listProduk.length} items',
-                                      style: TextStyle(color: Colors.blue),
+                                      style:
+                                          const TextStyle(color: Colors.blue),
                                     ),
                                   ),
                                 ),
-                                DataCell(Text(formatDateTime(stock['updatedAt'] ?? ''))),
+                                DataCell(Text(
+                                    formatDateTime(stock['updatedAt'] ?? ''))),
                                 DataCell(
                                   IconButton(
-                                    icon: Icon(Icons.delete, color: Colors.red),
+                                    icon: const Icon(Icons.delete,
+                                        color: Colors.red),
                                     onPressed: () async {
-                                      final bool? shouldDelete = await showDialog(
+                                      final bool? shouldDelete =
+                                          await showDialog(
                                         context: context,
                                         builder: (BuildContext context) {
                                           return DeleteRestock(
@@ -268,7 +282,7 @@ class _StockPageState extends State<StockPage> {
             MaterialPageRoute(builder: (context) => const AddStockPage()),
           );
         },
-        child: Icon(Icons.add),
+        child: const Icon(Icons.add),
       ),
     );
   }

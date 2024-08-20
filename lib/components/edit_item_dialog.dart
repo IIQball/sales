@@ -18,11 +18,11 @@ class EditItemDialog extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12.0),
       ),
-      title: Row(
+      title: const Row(
         children: [
           Icon(Icons.edit, color: Colors.blueAccent, size: 30),
-          const SizedBox(width: 8),
-          const Text(
+          SizedBox(width: 8),
+          Text(
             'Edit Item',
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
@@ -55,30 +55,30 @@ class EditItemDialog extends StatelessWidget {
           onPressed: () {
             Navigator.pop(context);
           },
-          child: const Text(
-            'Cancel',
-            style: TextStyle(color: Colors.blueAccent),
-          ),
           style: TextButton.styleFrom(
             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8.0),
-              side: BorderSide(color: Colors.blueAccent),
+              side: const BorderSide(color: Colors.blueAccent),
             ),
+          ),
+          child: const Text(
+            'Cancel',
+            style: TextStyle(color: Colors.blueAccent),
           ),
         ),
         ElevatedButton(
           onPressed: () {
             onConfirm();
           },
-          child: const Text('Update'),
           style: ElevatedButton.styleFrom(
-            primary: Colors.blueAccent,
+            backgroundColor: Colors.blueAccent,
             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8.0),
             ),
           ),
+          child: const Text('Update'),
         ),
       ],
     );

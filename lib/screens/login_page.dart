@@ -2,17 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sales/screens/Dashboard.dart';
+import 'package:sales/screens/dashboard.dart';
 import 'package:sales/screens/regist_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
 
   @override
-  _LoginPageState createState() => _LoginPageState();
+  LoginPageState createState() => LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class LoginPageState extends State<LoginPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -26,157 +26,163 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _login() async {
-  if (_formKey.currentState!.validate()) {
-    final response = await http.post(
-      Uri.parse('https://backend-sales-pearl.vercel.app/api/owner/login'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(<String, String>{
-        'email': emailController.text,
-        'password': passwordController.text,
-      }),
-    );
-
-    if (response.statusCode == 200) {
-      final Map<String, dynamic> responseData = jsonDecode(response.body);
-      final String token = responseData['token'];
-
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString('token', token);
-
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return Dialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.check_circle,
-                    color: Colors.green,
-                    size: 64,
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Login Berhasil!',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Selamat datang kembali!',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.black54,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pop(); 
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (context) => DashboardPage(token: token)),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      primary: Colors.blue,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                    ),
-                    child: const Text(
-                      'Lanjutkan',
-                      style: TextStyle(fontSize: 16),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
+    if (_formKey.currentState!.validate()) {
+      final response = await http.post(
+        Uri.parse('https://backend-sales-pearl.vercel.app/api/owner/login'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
         },
+        body: jsonEncode(<String, String>{
+          'email': emailController.text,
+          'password': passwordController.text,
+        }),
       );
-    } else {
-      _showErrorDialog('Login gagal, email atau password salah.');
+
+      if (!mounted) return;
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+        final String token = responseData['token'];
+
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString('token', token);
+
+        if (!mounted) return;
+
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.check_circle,
+                      color: Colors.green,
+                      size: 64,
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Login Berhasil!',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Selamat datang kembali!',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.black54,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  DashboardPage(token: token)),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 32, vertical: 12),
+                      ),
+                      child: const Text(
+                        'Lanjutkan',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      } else {
+        _showErrorDialog('Login gagal, email atau password salah.');
+      }
     }
   }
-}
-
 
   void _showErrorDialog(String message) {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.error_outline,
-                color: Colors.red,
-                size: 64,
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Login Gagal!',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                message,
-                style: const TextStyle(
-                  fontSize: 16,
-                  color: Colors.black54,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pop(); 
-                },
-                style: ElevatedButton.styleFrom(
-                  primary: Colors.red,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                ),
-                child: const Text(
-                  'Coba Lagi',
-                  style: TextStyle(fontSize: 16),
-                ),
-              ),
-            ],
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
           ),
-        ),
-      );
-    },
-  );
-}
-
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.error_outline,
+                  color: Colors.red,
+                  size: 64,
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Login Gagal!',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  message,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: Colors.black54,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 32, vertical: 12),
+                  ),
+                  child: const Text(
+                    'Coba Lagi',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -236,7 +242,9 @@ class _LoginPageState extends State<LoginPage> {
                         const SizedBox(height: 20),
                         Text(
                           'Email',
-                          style: TextStyle(fontSize: 16, color: Colors.black.withOpacity(0.7)),
+                          style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.black.withOpacity(0.7)),
                         ),
                         const SizedBox(height: 8),
                         TextFormField(
@@ -248,7 +256,8 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                             filled: true,
                             fillColor: Colors.white,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 12),
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
@@ -262,7 +271,9 @@ class _LoginPageState extends State<LoginPage> {
                         const SizedBox(height: 20),
                         Text(
                           'Password',
-                          style: TextStyle(fontSize: 16, color: Colors.black.withOpacity(0.7)),
+                          style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.black.withOpacity(0.7)),
                         ),
                         const SizedBox(height: 8),
                         TextFormField(
@@ -274,10 +285,13 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                             filled: true,
                             fillColor: Colors.white,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 12),
                             suffixIcon: IconButton(
                               icon: Icon(
-                                _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                                _isPasswordVisible
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
                                 color: Colors.grey,
                               ),
                               onPressed: () {
@@ -302,7 +316,7 @@ class _LoginPageState extends State<LoginPage> {
                           child: ElevatedButton(
                             onPressed: _login,
                             style: ElevatedButton.styleFrom(
-                              primary: Colors.blue.shade800,
+                              backgroundColor: Colors.blue.shade800,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
@@ -323,12 +337,16 @@ class _LoginPageState extends State<LoginPage> {
                               onPressed: () {
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (context) => const RegisterPage()),
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          const RegisterPage()),
                                 );
                               },
                               child: const Text(
                                 'Daftar',
-                                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold),
                               ),
                             ),
                           ],

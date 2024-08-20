@@ -18,11 +18,11 @@ class AddItemDialog extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12.0),
       ),
-      title: Row(
+      title: const Row(
         children: [
           Icon(Icons.add, color: Colors.green, size: 30),
-          const SizedBox(width: 8),
-          const Text(
+          SizedBox(width: 8),
+          Text(
             'Tambah Barang',
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
@@ -55,16 +55,16 @@ class AddItemDialog extends StatelessWidget {
           onPressed: () {
             Navigator.of(context).pop();
           },
-          child: const Text(
-            'Batal',
-            style: TextStyle(color: Colors.green),
-          ),
           style: TextButton.styleFrom(
             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8.0),
-              side: BorderSide(color: Colors.green),
+              side: const BorderSide(color: Colors.green),
             ),
+          ),
+          child: const Text(
+            'Batal',
+            style: TextStyle(color: Colors.green),
           ),
         ),
         ElevatedButton(
@@ -72,14 +72,14 @@ class AddItemDialog extends StatelessWidget {
             onConfirm();
             Navigator.of(context).pop();
           },
-          child: const Text('Tambah'),
           style: ElevatedButton.styleFrom(
-            primary: Colors.green,
+            backgroundColor: Colors.green,
             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8.0),
             ),
           ),
+          child: const Text('Tambah'),
         ),
       ],
     );

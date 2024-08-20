@@ -37,7 +37,7 @@ class ProductDetailsPage extends StatelessWidget {
                       contentPadding: const EdgeInsets.all(16.0),
                       title: Text(
                         product['nama_produk'] ?? 'N/A',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16.0,
                         ),
@@ -45,7 +45,8 @@ class ProductDetailsPage extends StatelessWidget {
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Kode barang: ${product['kode_produk'] ?? 'N/A'}'),
+                          Text(
+                              'Kode barang: ${product['kode_produk'] ?? 'N/A'}'),
                           Text('Qty: ${product['qty'] ?? 'N/A'}'),
                         ],
                       ),

@@ -17,7 +17,8 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController usernameController = TextEditingController();
-  final TextEditingController confirmPasswordController = TextEditingController();
+  final TextEditingController confirmPasswordController =
+      TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool _isPasswordVisible = false;
 
@@ -31,34 +32,34 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Future<void> _register() async {
-  if (_formKey.currentState!.validate()) {
-    final response = await http.post(
-      Uri.parse('https://backend-sales-pearl.vercel.app/api/owner/register'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(<String, String>{
-        'username': usernameController.text,
-        'email': emailController.text,
-        'password': passwordController.text,
-      }),
-    );
-
-    if (response.statusCode == 200) {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return const SuccessDialog(message: 'Anda telah berhasil menambahkan akun');
+    if (_formKey.currentState!.validate()) {
+      final response = await http.post(
+        Uri.parse('https://backend-sales-pearl.vercel.app/api/owner/register'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
         },
-      ).then((_) {
-        Navigator.pop(context); 
-      });
-    } else {
-      _showErrorDialog('Registrasi gagal, silakan coba lagi.');
+        body: jsonEncode(<String, String>{
+          'username': usernameController.text,
+          'email': emailController.text,
+          'password': passwordController.text,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return const SuccessDialog(
+                message: 'Anda telah berhasil menambahkan akun');
+          },
+        ).then((_) {
+          Navigator.pop(context);
+        });
+      } else {
+        _showErrorDialog('Registrasi gagal, silakan coba lagi.');
+      }
     }
   }
-}
-
 
   void _showErrorDialog(String message) {
     showDialog(
@@ -138,7 +139,9 @@ class _RegisterPageState extends State<RegisterPage> {
                         const SizedBox(height: 20),
                         Text(
                           'Username',
-                          style: TextStyle(fontSize: 16, color: Colors.black.withOpacity(0.7)),
+                          style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.black.withOpacity(0.7)),
                         ),
                         const SizedBox(height: 8),
                         TextFormField(
@@ -149,7 +152,8 @@ class _RegisterPageState extends State<RegisterPage> {
                             ),
                             filled: true,
                             fillColor: Colors.white,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 12),
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
@@ -161,7 +165,9 @@ class _RegisterPageState extends State<RegisterPage> {
                         const SizedBox(height: 20),
                         Text(
                           'Email',
-                          style: TextStyle(fontSize: 16, color: Colors.black.withOpacity(0.7)),
+                          style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.black.withOpacity(0.7)),
                         ),
                         const SizedBox(height: 8),
                         TextFormField(
@@ -173,7 +179,8 @@ class _RegisterPageState extends State<RegisterPage> {
                             ),
                             filled: true,
                             fillColor: Colors.white,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 12),
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
@@ -187,7 +194,9 @@ class _RegisterPageState extends State<RegisterPage> {
                         const SizedBox(height: 20),
                         Text(
                           'Password',
-                          style: TextStyle(fontSize: 16, color: Colors.black.withOpacity(0.7)),
+                          style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.black.withOpacity(0.7)),
                         ),
                         const SizedBox(height: 8),
                         TextFormField(
@@ -199,10 +208,13 @@ class _RegisterPageState extends State<RegisterPage> {
                             ),
                             filled: true,
                             fillColor: Colors.white,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 12),
                             suffixIcon: IconButton(
                               icon: Icon(
-                                _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                                _isPasswordVisible
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
                                 color: Colors.grey,
                               ),
                               onPressed: () {
@@ -224,7 +236,9 @@ class _RegisterPageState extends State<RegisterPage> {
                         const SizedBox(height: 20),
                         Text(
                           'Konfirmasi Password',
-                          style: TextStyle(fontSize: 16, color: Colors.black.withOpacity(0.7)),
+                          style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.black.withOpacity(0.7)),
                         ),
                         const SizedBox(height: 8),
                         TextFormField(
@@ -236,10 +250,13 @@ class _RegisterPageState extends State<RegisterPage> {
                             ),
                             filled: true,
                             fillColor: Colors.white,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 12),
                             suffixIcon: IconButton(
                               icon: Icon(
-                                _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                                _isPasswordVisible
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
                                 color: Colors.grey,
                               ),
                               onPressed: () {
@@ -262,7 +279,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           child: ElevatedButton(
                             onPressed: _register,
                             style: ElevatedButton.styleFrom(
-                              primary: Colors.blue.shade800,
+                              backgroundColor: Colors.blue.shade800,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
@@ -283,12 +300,15 @@ class _RegisterPageState extends State<RegisterPage> {
                               onPressed: () {
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (context) => const LoginPage()),
+                                  MaterialPageRoute(
+                                      builder: (context) => const LoginPage()),
                                 );
                               },
                               child: const Text(
                                 'Login',
-                                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold),
                               ),
                             ),
                           ],

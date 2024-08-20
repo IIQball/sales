@@ -8,10 +8,10 @@ class AddStockPage extends StatefulWidget {
   const AddStockPage({Key? key}) : super(key: key);
 
   @override
-  _AddStockPageState createState() => _AddStockPageState();
+  AddStockPageState createState() => AddStockPageState();
 }
 
-class _AddStockPageState extends State<AddStockPage> {
+class AddStockPageState extends State<AddStockPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final List<Map<String, dynamic>> _formData = [];
   final Map<String, Map<String, dynamic>> _productData = {};
@@ -50,10 +50,10 @@ class _AddStockPageState extends State<AddStockPage> {
           }
         });
       } else {
-        print('Failed to load product data');
+        debugPrint('Failed to load product data');
       }
     } else {
-      print('No token found');
+      debugPrint('No token found');
     }
   }
 
@@ -77,7 +77,8 @@ class _AddStockPageState extends State<AddStockPage> {
     if (_formKey.currentState?.validate() ?? false) {
       final List<Map<String, dynamic>> listProduk = _formData.map((data) {
         final selectedProduct = data['selectedProduct'];
-        final productData = selectedProduct != null ? _productData[selectedProduct] : null;
+        final productData =
+            selectedProduct != null ? _productData[selectedProduct] : null;
 
         return {
           'id_produk': productData?['id_produk'] ?? '',
@@ -87,7 +88,8 @@ class _AddStockPageState extends State<AddStockPage> {
         };
       }).toList();
 
-      if (listProduk.any((item) => item['id_produk'].isEmpty || item['kode_produk'].isEmpty)) {
+      if (listProduk.any(
+          (item) => item['id_produk'].isEmpty || item['kode_produk'].isEmpty)) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Data produk tidak lengkap')),
         );
@@ -98,7 +100,7 @@ class _AddStockPageState extends State<AddStockPage> {
       final String? token = prefs.getString('token');
 
       if (token != null) {
-        final url = 'https://backend-sales-pearl.vercel.app/api/owner/restock';
+        const url = 'https://backend-sales-pearl.vercel.app/api/owner/restock';
         final response = await http.post(
           Uri.parse(url),
           headers: {
@@ -110,16 +112,20 @@ class _AddStockPageState extends State<AddStockPage> {
           }),
         );
 
+        if (!mounted) return;
+
         if (response.statusCode == 201) {
           // Update qty_gudang in the inventory
           for (var item in listProduk) {
             await _updateInventoryQty(item['id_produk'], item['qty']);
           }
-          // Show success popup
-          showSuccessPopup(
-            context,
-            'Data berhasil ditambahkan',
-          );
+          if (mounted) {
+            // Show success popup
+            showSuccessPopup(
+              context,
+              'Data berhasil ditambahkan',
+            );
+          }
         } else {
           showSuccessPopup(
             context,
@@ -135,7 +141,8 @@ class _AddStockPageState extends State<AddStockPage> {
     final String? token = prefs.getString('token');
 
     if (token != null) {
-      final url = 'https://backend-sales-pearl.vercel.app/api/owner/inventory/update_qty/$idProduk';
+      final url =
+          'https://backend-sales-pearl.vercel.app/api/owner/inventory/update_qty/$idProduk';
       final response = await http.put(
         Uri.parse(url),
         headers: {
@@ -148,16 +155,16 @@ class _AddStockPageState extends State<AddStockPage> {
       );
 
       if (response.statusCode != 200) {
-        print('Failed to update qty_gudang');
+        debugPrint('Failed to update qty_gudang');
       }
     }
   }
 
   @override
   void dispose() {
-    _formData.forEach((data) {
+    for (var data in _formData) {
       data['qtyController'].dispose();
-    });
+    }
     super.dispose();
   }
 
@@ -228,7 +235,8 @@ class _AddStockPageState extends State<AddStockPage> {
                             ),
                             if (index != 0)
                               IconButton(
-                                icon: const Icon(Icons.remove_circle, color: Colors.red),
+                                icon: const Icon(Icons.remove_circle,
+                                    color: Colors.red),
                                 onPressed: () => _removeForm(index),
                               ),
                           ],
@@ -243,7 +251,8 @@ class _AddStockPageState extends State<AddStockPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.add_circle, color: Colors.blue, size: 30),
+                    icon: const Icon(Icons.add_circle,
+                        color: Colors.blue, size: 30),
                     onPressed: _addForm,
                   ),
                 ],

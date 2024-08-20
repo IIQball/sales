@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sales/screens/items_page.dart';
 import 'package:sales/screens/sales_page.dart';
 import 'package:sales/screens/stock_history.dart';
-import 'package:sales/screens/login_page.dart'; 
+import 'package:sales/screens/login_page.dart';
 
 class DashboardPage extends StatelessWidget {
   final String token;
@@ -53,7 +52,8 @@ class DashboardPage extends StatelessWidget {
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => const SalesPage()),
+                          MaterialPageRoute(
+                              builder: (context) => const SalesPage()),
                         );
                       },
                     ),
@@ -70,7 +70,8 @@ class DashboardPage extends StatelessWidget {
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => const ItemsPage()),
+                          MaterialPageRoute(
+                              builder: (context) => const ItemsPage()),
                         );
                       },
                     ),
@@ -80,7 +81,8 @@ class DashboardPage extends StatelessWidget {
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => const StockPage()),
+                          MaterialPageRoute(
+                              builder: (context) => const StockPage()),
                         );
                       },
                     ),
@@ -112,9 +114,9 @@ class DashboardPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          const Text(
             'Your Token:',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
               color: Colors.black87,

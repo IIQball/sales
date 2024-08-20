@@ -13,16 +13,15 @@ class ItemsPage extends StatefulWidget {
   const ItemsPage({Key? key}) : super(key: key);
 
   @override
-  _ItemsPageState createState() => _ItemsPageState();
+  ItemsPageState createState() => ItemsPageState();
 }
 
-class _ItemsPageState extends State<ItemsPage> {
+class ItemsPageState extends State<ItemsPage> {
   final List<Map<String, dynamic>> _items = [];
   bool _isLoading = true;
   final List<Map<String, dynamic>> _filteredItems = [];
   final TextEditingController _namaProdukController = TextEditingController();
   final TextEditingController _kodeProdukController = TextEditingController();
-  int? _editingIndex;
   String? _editingItemId;
   final TextEditingController _searchController = TextEditingController();
 
@@ -74,13 +73,15 @@ class _ItemsPageState extends State<ItemsPage> {
           _isLoading = false;
         });
       } else {
-        print('Failed to load items');
+        debugPrint('Failed to load items');
+        if (!mounted) return;
         setState(() {
           _isLoading = false;
         });
       }
     } else {
-      print('No token found');
+      debugPrint('No token found');
+      if (!mounted) return;
       setState(() {
         _isLoading = false;
       });
@@ -94,7 +95,8 @@ class _ItemsPageState extends State<ItemsPage> {
         final namaLower = item['nama']?.toLowerCase() ?? '';
         final kodeLower = item['kode']?.toLowerCase() ?? '';
         final searchLower = _searchController.text.toLowerCase();
-        return namaLower.contains(searchLower) || kodeLower.contains(searchLower);
+        return namaLower.contains(searchLower) ||
+            kodeLower.contains(searchLower);
       }).toList());
     });
   }
@@ -117,8 +119,12 @@ class _ItemsPageState extends State<ItemsPage> {
         }),
       );
 
+      if (!mounted) return;
+
       if (response.statusCode == 200 || response.statusCode == 201) {
         final newItem = jsonDecode(response.body);
+
+        if (!mounted) return;
 
         setState(() {
           _items.add({
@@ -129,26 +135,30 @@ class _ItemsPageState extends State<ItemsPage> {
         });
 
         await _fetchItemsFromApi();
-        showDialog(
-          context: context,
-          builder: (context) {
-            return SuccessDialog(
-              message: 'Produk berhasil ditambahkan',
-              onClose: () {
-                Navigator.of(context).pop();
-              },
-            );
-          },
-        );
+        if (mounted) {
+          showDialog(
+            context: context,
+            builder: (context) {
+              return SuccessDialog(
+                message: 'Produk berhasil ditambahkan',
+                onClose: () {
+                  Navigator.of(context).pop();
+                },
+              );
+            },
+          );
+        }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to add item: ${response.statusCode}')),
         );
       }
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No token found')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No token found')),
+        );
+      }
     }
   }
 
@@ -157,7 +167,8 @@ class _ItemsPageState extends State<ItemsPage> {
     final String? token = prefs.getString('token');
 
     if (token != null && _editingItemId != null) {
-      final url = 'https://backend-sales-pearl.vercel.app/api/owner/inventory/$_editingItemId';
+      final url =
+          'https://backend-sales-pearl.vercel.app/api/owner/inventory/$_editingItemId';
       final response = await http.put(
         Uri.parse(url),
         headers: {
@@ -170,20 +181,26 @@ class _ItemsPageState extends State<ItemsPage> {
         }),
       );
 
+      if (!mounted) return;
+
       if (response.statusCode == 200) {
         await _fetchItemsFromApi();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Produk berhasil diperbarui')),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Produk berhasil diperbarui')),
+          );
+        }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Gagal memperbarui produk')),
         );
       }
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No token found')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No token found')),
+        );
+      }
     }
   }
 
@@ -193,7 +210,8 @@ class _ItemsPageState extends State<ItemsPage> {
 
     if (token != null) {
       final itemId = _items[index]['_id'];
-      final url = 'https://backend-sales-pearl.vercel.app/api/owner/inventory/delete/$itemId';
+      final url =
+          'https://backend-sales-pearl.vercel.app/api/owner/inventory/delete/$itemId';
       final response = await http.delete(
         Uri.parse(url),
         headers: {
@@ -201,35 +219,42 @@ class _ItemsPageState extends State<ItemsPage> {
         },
       );
 
+      if (!mounted) return;
+
       if (response.statusCode == 200) {
         setState(() {
           _items.removeAt(index);
           _filteredItems.removeAt(index);
         });
-        
+
         await _fetchItemsFromApi();
 
+        if (mounted) {
+          showDialog(
+            context: context,
+            builder: (context) {
+              return SuccessDeleteDialog(
+                message: 'Produk berhasil dihapus',
+                onClose: () {
+                  Navigator.of(context).pop();
+                },
+              );
+            },
+          );
+        }
         // Tampilkan SuccessDeleteDialog
-        showDialog(
-          context: context,
-          builder: (context) {
-            return SuccessDeleteDialog(
-              message: 'Produk berhasil dihapus',
-              onClose: () {
-                Navigator.of(context).pop();
-              },
-            );
-          },
-        );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal menghapus produk: ${response.statusCode}')),
+          SnackBar(
+              content: Text('Gagal menghapus produk: ${response.statusCode}')),
         );
       }
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No token found')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No token found')),
+        );
+      }
     }
   }
 
@@ -278,9 +303,8 @@ class _ItemsPageState extends State<ItemsPage> {
           kodeController: _kodeProdukController,
           onConfirm: () async {
             await _editItem();
-            if (mounted) {
-              Navigator.pop(context);
-            }
+            // ignore: use_build_context_synchronously
+            Navigator.pop(context);
           },
         );
       },
@@ -291,7 +315,6 @@ class _ItemsPageState extends State<ItemsPage> {
     setState(() {
       _namaProdukController.text = _items[index]['nama'];
       _kodeProdukController.text = _items[index]['kode'];
-      _editingIndex = index;
       _editingItemId = _items[index]['_id'];
     });
   }
@@ -321,12 +344,14 @@ class _ItemsPageState extends State<ItemsPage> {
                         filled: true,
                         fillColor: Colors.white,
                         labelText: 'Cari Produk',
-                        prefixIcon: Icon(Icons.search, color: Colors.blueAccent),
+                        prefixIcon:
+                            const Icon(Icons.search, color: Colors.blueAccent),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
                         ),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 12),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -340,8 +365,8 @@ class _ItemsPageState extends State<ItemsPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddDialog,
-        child: const Icon(Icons.add),
         backgroundColor: Colors.blueAccent,
+        child: const Icon(Icons.add),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
@@ -410,7 +435,8 @@ class _ItemsPageState extends State<ItemsPage> {
             contentPadding: const EdgeInsets.all(16),
             title: Text(
               item['nama'] ?? '',
-              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87),
+              style: const TextStyle(
+                  fontWeight: FontWeight.bold, color: Colors.black87),
             ),
             subtitle: Text(
               item['kode'] ?? '',
