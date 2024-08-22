@@ -4,118 +4,40 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sales/screens/dashboard.dart';
-import 'package:sales/screens/regist_page.dart';
+import 'package:sales/screens/Dashboard.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({Key? key}) : super(key: key);
+class SalesLogin extends StatefulWidget {
+  const SalesLogin({Key? key}) : super(key: key);
 
   @override
-  LoginPageState createState() => LoginPageState();
+  _SalesLoginState createState() => _SalesLoginState();
 }
 
-class LoginPageState extends State<LoginPage> {
-  final TextEditingController emailController = TextEditingController();
+class _SalesLoginState extends State<SalesLogin> {
+  final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool _isPasswordVisible = false;
 
   @override
   void dispose() {
-    emailController.dispose();
+    usernameController.dispose();
     passwordController.dispose();
     super.dispose();
   }
 
   Future<void> _login() async {
-  if (_formKey.currentState!.validate()) {
-    final response = await http.post(
-      Uri.parse('https://backend-sales-pearl.vercel.app/api/owner/login'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(<String, String>{
-        'email': emailController.text,
-        'password': passwordController.text,
-      }),
-    );
-
-    if (response.statusCode == 200) {
-      final Map<String, dynamic> responseData = jsonDecode(response.body);
-      final String token = responseData['token'];
-
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString('token', token);
-
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return Dialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const Icon(
-                    Icons.check_circle,
-                    color: Colors.green,
-                    size: 64,
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Login Berhasil!',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Selamat datang kembali!',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.black54,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pop(); 
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (context) => DashboardPage(token: token)),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      primary: Colors.blue,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                    ),
-                    child: const Text(
-                      'Lanjutkan',
-                      style: TextStyle(fontSize: 16),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
+    if (_formKey.currentState!.validate()) {
+      final response = await http.post(
+        Uri.parse('https://backend-sales-pearl.vercel.app/api/sales/login'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
         },
         body: jsonEncode(<String, String>{
-          'email': emailController.text,
+          'username': usernameController.text,
           'password': passwordController.text,
         }),
       );
-
-      if (!mounted) return;
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseData = jsonDecode(response.body);
@@ -123,8 +45,6 @@ class LoginPageState extends State<LoginPage> {
 
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString('token', token);
-
-        if (!mounted) return;
 
         showDialog(
           context: context,
@@ -168,18 +88,15 @@ class LoginPageState extends State<LoginPage> {
                         Navigator.of(context).pop();
                         Navigator.pushReplacement(
                           context,
-                          MaterialPageRoute(
-                              builder: (context) =>
-                                  DashboardPage(token: token)),
+                          MaterialPageRoute(builder: (context) => DashboardPage(token: token)),
                         );
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
+                        primary: Colors.green,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 32, vertical: 12),
+                        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                       ),
                       child: const Text(
                         'Lanjutkan',
@@ -193,66 +110,18 @@ class LoginPageState extends State<LoginPage> {
           },
         );
       } else {
-        _showErrorDialog('Login gagal, email atau password salah.');
+        _showErrorDialog('Login gagal, username atau password salah.');
       }
     }
   }
 
   void _showErrorDialog(String message) {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const Icon(
-                Icons.error_outline,
-                color: Colors.red,
-                size: 64,
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Login Gagal!',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                message,
-                style: const TextStyle(
-                  fontSize: 16,
-                  color: Colors.black54,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pop(); 
-                },
-                style: ElevatedButton.styleFrom(
-                  primary: Colors.red,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                ),
-                child: const Text(
-                  'Coba Lagi',
-                  style: TextStyle(fontSize: 16),
-                ),
-              ),
-            ],
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
           ),
           child: Padding(
             padding: const EdgeInsets.all(16.0),
@@ -289,12 +158,11 @@ class LoginPageState extends State<LoginPage> {
                     Navigator.of(context).pop();
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
+                    primary: Colors.red,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 32, vertical: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                   ),
                   child: const Text(
                     'Coba Lagi',
@@ -315,7 +183,7 @@ class LoginPageState extends State<LoginPage> {
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Colors.blue.shade800, Colors.blue.shade400],
+            colors: [Colors.green.shade800, Colors.green.shade400],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -348,29 +216,23 @@ class LoginPageState extends State<LoginPage> {
                         ),
                         const SizedBox(height: 20),
                         Text(
-                          'Email',
-                          style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.black.withOpacity(0.7)),
+                          'Username',
+                          style: TextStyle(fontSize: 16, color: Colors.black.withOpacity(0.7)),
                         ),
                         const SizedBox(height: 8),
                         TextFormField(
-                          controller: emailController,
-                          keyboardType: TextInputType.emailAddress,
+                          controller: usernameController,
                           decoration: InputDecoration(
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
                             filled: true,
                             fillColor: Colors.white,
-                            contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 12),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Email tidak boleh kosong';
-                            } else if (!value.endsWith('@gmail.com')) {
-                              return 'Email harus menggunakan @gmail.com';
+                              return 'Username tidak boleh kosong';
                             }
                             return null;
                           },
@@ -378,9 +240,7 @@ class LoginPageState extends State<LoginPage> {
                         const SizedBox(height: 20),
                         Text(
                           'Password',
-                          style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.black.withOpacity(0.7)),
+                          style: TextStyle(fontSize: 16, color: Colors.black.withOpacity(0.7)),
                         ),
                         const SizedBox(height: 8),
                         TextFormField(
@@ -392,12 +252,11 @@ class LoginPageState extends State<LoginPage> {
                             ),
                             filled: true,
                             fillColor: Colors.white,
-                            contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 12),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                             suffixIcon: IconButton(
                               icon: Icon(
                                 _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
-                                color: Colors.blue,
+                                color: Colors.green,
                               ),
                               onPressed: () {
                                 setState(() {
@@ -421,7 +280,7 @@ class LoginPageState extends State<LoginPage> {
                           child: ElevatedButton(
                             onPressed: _login,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue.shade800,
+                              primary: Colors.green.shade800,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
@@ -429,30 +288,6 @@ class LoginPageState extends State<LoginPage> {
                             ),
                             child: const Text('Login'),
                           ),
-                        ),
-                        const SizedBox(height: 20),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Text(
-                              'Belum punya akun? ',
-                              style: TextStyle(color: Colors.black),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>
-                                          const RegisterPage()),
-                                );
-                              },
-                              child: const Text(
-                                'Daftar Disini!',
-                                style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                          ],
                         ),
                       ],
                     ),

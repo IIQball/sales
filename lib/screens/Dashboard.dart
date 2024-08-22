@@ -1,3 +1,5 @@
+// ignore_for_file: unused_import, file_names
+
 import 'package:flutter/material.dart';
 import 'package:sales/screens/items_page.dart';
 import 'package:sales/screens/sales_page.dart';
@@ -38,8 +40,6 @@ class DashboardPage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildTokenDisplay(),
-              const SizedBox(height: 20),
               Expanded(
                 child: GridView.count(
                   crossAxisCount: 2,
@@ -52,8 +52,7 @@ class DashboardPage extends StatelessWidget {
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(
-                              builder: (context) => const SalesPage()),
+                          MaterialPageRoute(builder: (context) => SalesPage()),
                         );
                       },
                     ),

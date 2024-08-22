@@ -1,3 +1,5 @@
+// ignore_for_file: unused_field, library_private_types_in_public_api, avoid_print, use_build_context_synchronously, sort_child_properties_last
+
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -229,20 +231,17 @@ class ItemsPageState extends State<ItemsPage> {
 
         await _fetchItemsFromApi();
 
-        if (mounted) {
-          showDialog(
-            context: context,
-            builder: (context) {
-              return SuccessDeleteDialog(
-                message: 'Produk berhasil dihapus',
-                onClose: () {
-                  Navigator.of(context).pop();
-                },
-              );
-            },
-          );
-        }
-        // Tampilkan SuccessDeleteDialog
+        showDialog(
+          context: context,
+          builder: (context) {
+            return SuccessDeleteDialog(
+              message: 'Produk berhasil dihapus',
+              onClose: () {
+                Navigator.of(context).pop();
+              },
+            );
+          },
+        );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -323,7 +322,7 @@ class ItemsPageState extends State<ItemsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('CRUD Barang'),
+        title: const Text('Data Barang'),
         backgroundColor: Colors.blueAccent,
         elevation: 0,
       ),
@@ -344,8 +343,7 @@ class ItemsPageState extends State<ItemsPage> {
                         filled: true,
                         fillColor: Colors.white,
                         labelText: 'Cari Produk',
-                        prefixIcon:
-                            const Icon(Icons.search, color: Colors.blueAccent),
+                        prefixIcon: const Icon(Icons.search, color: Colors.blueAccent),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
@@ -357,12 +355,7 @@ class ItemsPageState extends State<ItemsPage> {
                     const SizedBox(height: 16),
                     Expanded(child: _buildDataTable()),
                   ],
-                );
-              }
-            },
-          ),
         ),
-      ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddDialog,
         backgroundColor: Colors.blueAccent,

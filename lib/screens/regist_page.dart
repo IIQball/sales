@@ -84,24 +84,6 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const LoginPage()),
-              );
-            },
-            child: const Text(
-              'Login',
-              style: TextStyle(color: Colors.blue, fontSize: 16),
-            ),
-          ),
-        ],
-      ),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -215,7 +197,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                 _isPasswordVisible
                                     ? Icons.visibility
                                     : Icons.visibility_off,
-                                color: Colors.grey,
+                                color: Colors.blue,
                               ),
                               onPressed: () {
                                 setState(() {
@@ -257,7 +239,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                 _isPasswordVisible
                                     ? Icons.visibility
                                     : Icons.visibility_off,
-                                color: Colors.grey,
+                                color: Colors.blue,
                               ),
                               onPressed: () {
                                 setState(() {
@@ -294,7 +276,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           children: [
                             const Text(
                               'Sudah punya akun? ',
-                              style: TextStyle(color: Colors.white),
+                              style: TextStyle(color: Colors.black),
                             ),
                             TextButton(
                               onPressed: () {
@@ -307,7 +289,7 @@ class _RegisterPageState extends State<RegisterPage> {
                               child: const Text(
                                 'Login',
                                 style: TextStyle(
-                                    color: Colors.white,
+                                    color: Colors.blue,
                                     fontWeight: FontWeight.bold),
                               ),
                             ),

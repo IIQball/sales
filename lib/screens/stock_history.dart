@@ -3,11 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:sales/components/delete_restock_produk.dart';
-import 'package:sales/components/input_data_popup.dart';
+import 'package:sales/screens/add_stock.dart';
 import 'package:sales/screens/stock_produk_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shimmer/shimmer.dart';
-import 'add_stock.dart';
 
 class StockPage extends StatefulWidget {
   const StockPage({Key? key}) : super(key: key);
@@ -54,6 +53,7 @@ class StockPageState extends State<StockPage> {
         setState(() {
           stockHistory = responseData.map((stock) {
             return {
+              '_id': stock['_id'],
               'kode_restock': stock['kode_restock'],
               'list_produk': stock['list_produk'],
               'updatedAt': stock['updatedAt'],
@@ -62,45 +62,84 @@ class StockPageState extends State<StockPage> {
           _isLoading = false;
         });
       } else {
-        debugPrint('Failed to load stock');
         setState(() {
           _isLoading = false;
         });
       }
     } else {
-      debugPrint('No token found');
-      setState(() {
-        _isLoading = false;
-      });
-    }
   }
 
-  Future<void> _deleteStock(String kodeRestock) async {
+  Future<void> _deleteStock(String idRestok, List<Map<String, dynamic>> listProduk) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     final String? token = prefs.getString('token');
 
-    if (token != null) {
-      final url =
-          'https://backend-sales-pearl.vercel.app/api/owner/restock/$kodeRestock';
-      final response = await http.delete(
-        Uri.parse(url),
-        headers: {
-          'Authorization': 'Bearer $token',
-        },
+    if (token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Token tidak ditemukan.'),
+        ),
       );
+      return;
+    }
 
-      if (!mounted) return;
+    final isValidId = RegExp(r'^[a-fA-F0-9]{24}$').hasMatch(idRestok);
+    if (!isValidId) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('ID format tidak valid.'),
+        ),
+      );
+      return;
+    }
 
-      if (response.statusCode == 200) {
-        setState(() {
-          stockHistory
-              .removeWhere((stock) => stock['kode_restock'] == kodeRestock);
-        });
-        Navigator.of(context).pop();
-        showSuccessPopup(context, 'Data berhasil dihapus');
-      } else {
-        debugPrint('Failed to delete stock');
+    final url = 'https://backend-sales-pearl.vercel.app/api/owner/restock/$idRestok';
+    final response = await http.delete(
+      Uri.parse(url),
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      setState(() {
+        stockHistory.removeWhere((stock) => stock['_id'] == idRestok);
+      });
+      for (var produk in listProduk) {
+        await _updateQtyGudang(produk['id_produk'], produk['qty']);
       }
+      Navigator.of(context).pop(); 
+      _showSuccessPopup('Data berhasil dihapus');
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal menghapus data. Coba lagi.'),
+        ),
+      );
+    }
+  }
+
+  Future<void> _updateQtyGudang(String idProduk, int qty) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String? token = prefs.getString('token');
+
+    if (token == null) {
+      return;
+    }
+
+    final url = 'https://backend-sales-pearl.vercel.app/api/owner/inventory/$idProduk';
+    final response = await http.patch(
+      Uri.parse(url),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'qty_gudang': -qty, 
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      print('qty_gudang berhasil diperbarui.');
     }
   }
 
@@ -113,9 +152,24 @@ class StockPageState extends State<StockPage> {
   String formatDateTime(String dateTimeString) {
     DateTime dateTime = DateTime.parse(dateTimeString).toLocal();
     String formattedDate = DateFormat('dd-MM-yyyy HH:mm').format(dateTime);
-    String timeZone = "WIB";
+
+    String timeZone;
+    int offsetInHours = dateTime.timeZoneOffset.inHours;
+
+    if (offsetInHours == 7) {
+      timeZone = 'WIB';
+    } else if (offsetInHours == 8) {
+      timeZone = 'WITA'; 
+    } else if (offsetInHours == 9) {
+      timeZone = 'WIT'; 
+    } else {
+      timeZone = dateTime.timeZoneName; 
+    }
+
     return '$formattedDate $timeZone';
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -157,9 +211,8 @@ class StockPageState extends State<StockPage> {
                       decoration: InputDecoration(
                         filled: true,
                         fillColor: Colors.white,
-                        labelText: 'Cari Produk',
-                        prefixIcon:
-                            const Icon(Icons.search, color: Colors.blueAccent),
+                        labelText: 'Cari Restock',
+                        prefixIcon: Icon(Icons.search, color: Colors.blueAccent),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
@@ -169,103 +222,76 @@ class StockPageState extends State<StockPage> {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    Flexible(
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: DataTable(
-                          columns: const [
-                            DataColumn(
-                              label: Text(
-                                'Kode Restock',
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            DataColumn(
-                              label: Text(
-                                'Jumlah Produk',
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            DataColumn(
-                              label: Text(
-                                'Tanggal',
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            DataColumn(
-                              label: Text(
-                                'Action',
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
-                          rows: filteredStockHistory.map((stock) {
-                            final listProduk =
-                                stock['list_produk'] as List<dynamic>;
-                            return DataRow(
-                              cells: [
-                                DataCell(Text(stock['kode_restock'] ?? '')),
-                                DataCell(
-                                  GestureDetector(
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              ProductDetailsPage(
-                                            kodeRestok: stock['kode_restock'],
-                                            productDetails: listProduk,
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                    child: Text(
-                                      '${listProduk.length} items',
-                                      style:
-                                          const TextStyle(color: Colors.blue),
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: filteredStockHistory.length,
+                        itemBuilder: (context, index) {
+                          final stock = filteredStockHistory[index];
+                          final listProduk = stock['list_produk'] as List<dynamic>;
+                          return Card(
+                            elevation: 2.0,
+                            margin: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                              title: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '${stock['kode_restock'] ?? ''}',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16.0, 
                                     ),
                                   ),
-                                ),
-                                DataCell(Text(
-                                    formatDateTime(stock['updatedAt'] ?? ''))),
-                                DataCell(
-                                  IconButton(
-                                    icon: const Icon(Icons.delete,
-                                        color: Colors.red),
-                                    onPressed: () async {
-                                      final bool? shouldDelete =
-                                          await showDialog(
-                                        context: context,
-                                        builder: (BuildContext context) {
-                                          return DeleteRestock(
-                                            onConfirm: () {
-                                              Navigator.of(context).pop(true);
-                                            },
-                                          );
+                                  const SizedBox(height: 4.0),
+                                  Text(
+                                    '${listProduk.length} items',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14.0, 
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4.0),
+                                  Text(
+                                    '${formatDateTime(stock['updatedAt'] ?? '')}',
+                                    style: const TextStyle(
+                                      fontSize: 12.0, 
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              trailing: IconButton(
+                                icon: const Icon(Icons.delete, color: Colors.red),
+                                onPressed: () async {
+                                  final bool? shouldDelete = await showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return DeleteRestock(
+                                        onConfirm: () {
+                                          Navigator.of(context).pop(true);
                                         },
                                       );
-                                      if (shouldDelete == true) {
-                                        _deleteStock(stock['kode_restock']);
-                                      }
                                     },
+                                  );
+                                  if (shouldDelete == true) {
+                                    _deleteStock(stock['_id'], listProduk.cast<Map<String, dynamic>>());
+                                  }
+                                },
+                              ),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ProductDetailsPage(
+                                      kodeRestok: stock['kode_restock'],
+                                      productDetails: listProduk,
+                                    ),
                                   ),
-                                ),
-                              ],
-                            );
-                          }).toList(),
-                        ),
+                                );
+                              },
+                            ),
+                          );
+                        },
                       ),
                     ),
                   ],
@@ -279,7 +305,9 @@ class StockPageState extends State<StockPage> {
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const AddStockPage()),
+            MaterialPageRoute(
+              builder: (context) => const AddStockPage(),
+            ),
           );
         },
         child: const Icon(Icons.add),
@@ -291,31 +319,72 @@ class StockPageState extends State<StockPage> {
     return Shimmer.fromColors(
       baseColor: Colors.grey[300]!,
       highlightColor: Colors.grey[100]!,
-      child: ListView.builder(
-        itemCount: 5,
-        itemBuilder: (context, index) {
-          return Card(
-            margin: const EdgeInsets.symmetric(vertical: 8),
-            elevation: 4,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            margin: const EdgeInsets.only(bottom: 16.0),
+            height: 48.0,
+            color: Colors.white,
+          ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: 6,
+              itemBuilder: (context, index) {
+                return Card(
+                  elevation: 2.0,
+                  margin: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          height: 12.0,
+                          width: 200.0,
+                          color: Colors.white,
+                        ),
+                        const SizedBox(height: 10),
+                        Container(
+                          height: 12.0,
+                          width: 100.0,
+                          color: Colors.white,
+                        ),
+                        const SizedBox(height: 10),
+                        Container(
+                          height: 12.0,
+                          width: 150.0,
+                          color: Colors.white,
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
             ),
-            child: ListTile(
-              contentPadding: const EdgeInsets.all(16),
-              title: Container(
-                color: Colors.white,
-                height: 16,
-                width: double.infinity,
-              ),
-              subtitle: Container(
-                color: Colors.white,
-                height: 14,
-                width: double.infinity,
-              ),
-            ),
-          );
-        },
+          ),
+        ],
       ),
+    );
+  }
+
+  void _showSuccessPopup(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Icon(Icons.check_circle, color: Colors.green, size: 60),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Tutup'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 
-class DeleteRestock extends StatelessWidget {
+class AddStockDialog extends StatelessWidget {
+  final String title;
+  final String message;
   final VoidCallback onConfirm;
 
-  const DeleteRestock({
+  const AddStockDialog({
     Key? key,
+    required this.title,
+    required this.message,
     required this.onConfirm,
   }) : super(key: key);
 
@@ -14,45 +18,39 @@ class DeleteRestock extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12.0),
       ),
-      title: Row(
-        children: [
-          Icon(Icons.delete, color: Colors.redAccent, size: 30),
-          const SizedBox(width: 8),
-          const Text(
-            'Konfirmasi Hapus',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-        ],
+      title: Text(
+        title,
+        style: const TextStyle(fontWeight: FontWeight.bold),
       ),
-      content: const Text(
-        'Apakah Anda yakin ingin menghapus data ini?',
-        style: TextStyle(fontSize: 16),
+      content: Text(
+        message,
+        style: const TextStyle(fontSize: 18.0),
       ),
-      actions: [
+      actions: <Widget>[
         TextButton(
           onPressed: () {
-            Navigator.of(context).pop(false); // Cancel
+            Navigator.of(context).pop(false); // Return false to indicate cancellation
           },
           child: const Text(
             'Batal',
-            style: TextStyle(color: Colors.blueAccent),
+            style: TextStyle(color: Colors.green),
           ),
           style: TextButton.styleFrom(
             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8.0),
-              side: BorderSide(color: Colors.blueAccent),
+              side: const BorderSide(color: Colors.green),
             ),
           ),
         ),
         ElevatedButton(
-          onPressed: onConfirm,
-          child: const Text(
-            'Hapus',
-            style: TextStyle(color: Colors.white),
-          ),
+          onPressed: () {
+            onConfirm();
+            Navigator.of(context).pop(true); // Return true to indicate confirmation
+          },
+          child: const Text('Tambah'),
           style: ElevatedButton.styleFrom(
-            primary: Colors.redAccent,
+            primary: Colors.green,
             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8.0),
